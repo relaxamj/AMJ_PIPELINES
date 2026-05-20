@@ -1,0 +1,38 @@
+pipeline {
+    agent any
+
+    stages {
+
+        stage('SCM') {
+            steps {
+                git branch: 'main',
+                    url: 'https://github.com/relaxamj/Ekart.git'
+            }
+        }
+
+        stage('Maven Build') {
+            steps {
+                sh 'mvn clean install -DskipTests'
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                script {
+
+                    withDockerRegistry(
+                        credentialsId: 'dockerhub-creds',
+                        url: 'https://index.docker.io/v1/'
+                    ) {
+
+                        sh 'docker build -t ekart -f docker/Dockerfile .'
+
+                        sh 'docker tag ekart relaxamj/ekart:latest'
+
+                        sh 'docker push relaxamj/ekart:latest'
+                    }
+                }
+            }
+        }
+    }
+}
