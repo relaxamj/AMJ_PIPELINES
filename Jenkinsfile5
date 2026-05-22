@@ -1,0 +1,42 @@
+pipeline {
+    agent any
+
+    tools {
+        nodejs 'NodeJs'
+    }
+
+    stages {
+
+        stage('Git Checkout') {
+            steps {
+                git branch: 'main',
+                url: 'https://github.com/relaxamj/reactjs-app.git'
+            }
+        }
+
+        stage('Check Node') {
+            steps {
+                sh 'node -v'
+                sh 'npm -v'
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh 'npm install'
+            }
+        }
+
+        stage('Build App') {
+            steps {
+                sh 'npm run build'
+            }
+        }
+
+        stage('S3 Deploy') {
+            steps {
+                sh 'aws s3 sync dist/ s3://jha-reactapp-bucket --delete'
+            }
+        }
+    }
+}
